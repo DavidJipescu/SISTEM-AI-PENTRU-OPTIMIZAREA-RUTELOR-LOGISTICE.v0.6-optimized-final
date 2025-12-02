@@ -121,4 +121,4 @@ min
 
 Timpul alocat operațiunii de predare a coletului.
 
-5 – 15 min
+5    – 15 min
