@@ -1,1 +1,1 @@
-# Modul: src.data_acquisition
+# Pachet Data Acquisition

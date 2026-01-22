@@ -1,1 +1,1 @@
-# Modul: src.neural_network
+# Pachet Neural Network

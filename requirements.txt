@@ -1,0 +1,10 @@
+numpy
+pandas
+flask
+tensorflow
+scikit-learn
+requests
+joblib
+matplotlib
+osmnx
+networkx
