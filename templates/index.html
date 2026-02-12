@@ -39,6 +39,7 @@
         </div>
     </div>
 
+    <!-- Spinner încărcare -->
     <div class="loading-overlay" id="loader">
         <div class="text-center">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
@@ -46,18 +47,25 @@
         </div>
     </div>
 
+    <!-- Librării Leaflet și PolylineDecorator (pentru săgeți) -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.4/dist/leaflet.polylineDecorator.min.js"></script>
+    
     <script>
+        // Inițializare hartă pe București
         var map = L.map('map').setView([44.435, 26.102], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
 
         var markers = [];
         var locations = [];
         var routeLine = null;
+        var arrowLayer = null; 
 
+        // Iconițe personalizate
         var depotIcon = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', iconSize: [25, 41], iconAnchor: [12, 41] });
         var clientIcon = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', iconSize: [25, 41], iconAnchor: [12, 41] });
 
+        // Adăugare puncte la click pe hartă
         map.on('click', function(e) {
             var type = locations.length === 0 ? "depot" : "client";
             var icon = locations.length === 0 ? depotIcon : clientIcon;
@@ -70,16 +78,40 @@
             list.innerHTML += `<li class="list-group-item">${locations.length}. ${type === 'depot' ? 'Depozit' : 'Client'}</li>`;
         });
 
+        // Curățare hartă
         function resetMap() {
             markers.forEach(m => map.removeLayer(m));
             if (routeLine) map.removeLayer(routeLine);
+            if (arrowLayer) map.removeLayer(arrowLayer); 
             markers = []; locations = [];
             document.getElementById('route-list').innerHTML = "";
             document.getElementById('time-display').innerText = "0";
         }
 
+        // Funcție sigură pentru desenarea săgeților
+        function drawArrows(targetLine) {
+            try {
+                arrowLayer = L.polylineDecorator(targetLine, {
+                    patterns: [
+                        {
+                            offset: 30,       
+                            repeat: 80,       
+                            symbol: L.Symbol.arrowHead({
+                                pixelSize: 15, 
+                                polygon: false, 
+                                pathOptions: {stroke: true, color: '#002266', weight: 3}
+                            })
+                        }
+                    ]
+                }).addTo(map);
+            } catch (err) {
+                console.warn("Nu s-au putut desena săgețile:", err);
+            }
+        }
+
+        // Optimizare și desenare rută
         async function optimizeRoute() {
-            if (locations.length < 2) { alert("Minim 2 puncte!"); return; }
+            if (locations.length < 2) { alert("Minim 2 puncte necesare!"); return; }
             document.getElementById('loader').style.display = 'flex';
 
             try {
@@ -88,25 +120,45 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ locations: locations })
                 });
+                
+                // Verificăm dacă serverul a dat o eroare 500
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Eroare Server (${response.status}): ${errorText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.status === 'success') {
+                    // Actualizare timp estimat
                     document.getElementById('time-display').innerText = data.result.estimated_duration_min;
                     
+                    // Curățare rute vechi
                     if (routeLine) map.removeLayer(routeLine);
+                    if (arrowLayer) map.removeLayer(arrowLayer);
                     
                     if (data.result.detailed_geometry && data.result.detailed_geometry.length > 0) {
+                        // Rută detaliată (pe străzi)
                         var polyCoords = data.result.detailed_geometry.map(p => [p.lat, p.lon]);
-                        routeLine = L.polyline(polyCoords, {color: 'blue', weight: 5}).addTo(map);
+                        routeLine = L.polyline(polyCoords, {color: '#0d6efd', weight: 5}).addTo(map);
+                        drawArrows(routeLine);
+                        map.fitBounds(routeLine.getBounds(), {padding: [50, 50]});
+                    } else {
+                        // Fallback (linie directă aeriană) - Dacă backend-ul nu trimite geometria străzilor
+                        console.log("Backend-ul nu a returnat geometria străzilor. Folosim fallback cu linii drepte.");
+                        var simpleCoords = data.result.optimized_stops.map(p => [p.lat, p.lon]);
+                        routeLine = L.polyline(simpleCoords, {color: '#0d6efd', weight: 3, dashArray: '5,5'}).addTo(map);
+                        drawArrows(routeLine);
                         map.fitBounds(routeLine.getBounds(), {padding: [50, 50]});
                     }
                 } else {
-                    alert("Eroare: " + data.error);
+                    alert("Eroare de la Algoritm: " + data.error);
                 }
             } catch (error) {
-                console.error(error);
-                alert("Eroare server.");
+                console.error("Eroare completă:", error);
+                alert("A apărut o problemă: " + error.message);
             } finally {
+                // Ascunde mereu overlay-ul de încărcare
                 document.getElementById('loader').style.display = 'none';
             }
         }

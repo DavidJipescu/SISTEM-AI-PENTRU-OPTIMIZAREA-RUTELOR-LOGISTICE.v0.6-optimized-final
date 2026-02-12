@@ -32,7 +32,7 @@ def simulate_traffic_cost(dist_km, hour):
 def run():
     print(">>> [DataGen] 1. Generare Date Trafic pentru Antrenare RN...")
     data = []
-    for _ in range(5000):
+    for _ in range(25000):
         lat1, lon1 = generate_gps_point(CENTER_LAT, CENTER_LON, RADIUS_KM)
         lat2, lon2 = generate_gps_point(CENTER_LAT, CENTER_LON, RADIUS_KM)
         dist = np.sqrt((lat1-lat2)**2 + (lon1-lon2)**2) * 111.0
