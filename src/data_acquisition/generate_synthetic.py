@@ -4,7 +4,7 @@ import json
 import os
 import random
 
-# Configurare Geografică (București)
+# Pozitie Bucuresti
 CENTER_LAT = 44.435
 CENTER_LON = 26.102
 RADIUS_KM = 15
@@ -19,13 +19,12 @@ def generate_gps_point(center_lat, center_lon, radius_km):
     return x + center_lat, y + center_lon / np.cos(np.radians(center_lat))
 
 def simulate_traffic_cost(dist_km, hour):
-    # Model matematic pentru congestie (Funcție neliniară)
+    # Model matematic pentru congestie 
     base_speed = 35.0 # km/h
     # Factor congestie: Vârfuri la 8-9 și 17-18
     congestion = 1.0 + 1.5 * np.exp(-((hour - 8.5)**2)/2) + 1.8 * np.exp(-((hour - 17.5)**2)/2)
     real_speed = base_speed / congestion
     duration_min = (dist_km / real_speed) * 60
-    # Adăugare zgomot stochastic
     noise = np.random.normal(0, duration_min * 0.15) 
     return max(2.0, duration_min + noise)
 
@@ -44,7 +43,7 @@ def run():
         })
     os.makedirs('data/raw', exist_ok=True)
     pd.DataFrame(data).to_csv('data/raw/synthetic_traffic_data.csv', index=False)
-    print("   ✅ CSV generat: data/raw/synthetic_traffic_data.csv")
+    print("   CSV generat: data/raw/synthetic_traffic_data.csv")
 
     print(">>> [DataGen] 2. Generare Scenarii Livrare (Input pt Algoritm Genetic)...")
     scenarios = []
@@ -57,7 +56,7 @@ def run():
         scenarios.append({"scenario_id": i, "locations": stops})
     with open('data/raw/delivery_scenarios.json', 'w') as f:
         json.dump(scenarios, f, indent=2)
-    print("   ✅ JSON generat: data/raw/delivery_scenarios.json")
+    print("   JSON generat: data/raw/delivery_scenarios.json")
 
 if __name__ == "__main__":
     run()

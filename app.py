@@ -15,9 +15,9 @@ optimizer = None
 try:
     ai_brain = TrafficModel()
     optimizer = GeneticOptimizer(ai_brain)
-    print("✅ [SERVER] Module încărcate cu succes.")
+    print("[SERVER] Module încărcate cu succes.")
 except Exception as e:
-    print(f"❌ [CRITIC] Eroare la inițializare: {e}")
+    print(f"[CRITIC] Eroare la inițializare: {e}")
 
 # --- RUTE WEB ---
 

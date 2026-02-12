@@ -16,11 +16,11 @@ class GeneticOptimizer:
     def _load_graph(self):
         self.state = "LOADING_MAP"
         if os.path.exists(self.graph_path):
-            print(f"[Genetic] 🗺️  Încărcare hartă București din cache...")
+            print(f"[Genetic]  Încărcare hartă București din cache...")
             self.G = ox.load_graphml(self.graph_path)
             self.state = "IDLE"
         else:
-            print("[Genetic] ⚠️  Harta nu există local. Se descarcă (durează un minut)...")
+            print("[Genetic]  Harta nu există local. Se descarcă (durează un minut)...")
             try:
                 center_point = (44.435, 26.102) 
                 self.G = ox.graph_from_point(center_point, dist=15000, network_type='drive')
@@ -29,9 +29,9 @@ class GeneticOptimizer:
                 os.makedirs(os.path.dirname(self.graph_path), exist_ok=True)
                 ox.save_graphml(self.G, self.graph_path)
                 self.state = "IDLE"
-                print("[Genetic] ✅ Harta a fost salvată!")
+                print("[Genetic] Harta a fost salvată!")
             except Exception as e:
-                print(f"[Genetic] ❌ Eroare la descărcarea hărții: {e}")
+                print(f"[Genetic] Eroare la descărcarea hărții: {e}")
                 self.state = "ERROR"
 
     def _get_network_distance(self, loc1, loc2):
@@ -61,14 +61,14 @@ class GeneticOptimizer:
                 loc_curr = locations[idx_curr]
                 loc_next = locations[idx_next]
                 
-                # Găsim nodurile pe hartă
+                # Gasim nodurile pe hartă
                 orig = ox.distance.nearest_nodes(self.G, loc_curr['lon'], loc_curr['lat'])
                 dest = ox.distance.nearest_nodes(self.G, loc_next['lon'], loc_next['lat'])
                 
-                # Calculăm calea exactă (lista de noduri)
+                # Calculam calea exacta (lista de noduri)
                 path_nodes = nx.shortest_path(self.G, orig, dest, weight='length')
                 
-                # Transformăm nodurile în coordonate Lat/Lon
+                # Transformam nodurile în coordonate Lat/Lon
                 for node in path_nodes:
                     lat = self.G.nodes[node]['y']
                     lon = self.G.nodes[node]['x']
@@ -76,14 +76,14 @@ class GeneticOptimizer:
                     
             return detailed_path
         except Exception as e:
-            print(f"[Genetic] ⚠️ Eroare la extragerea geometriei detaliate: {e}")
+            print(f"[Genetic] Eroare la extragerea geometriei detaliate: {e}")
             # Fallback - dacă dă eroare, întoarcem gol ca să deseneze interfața o linie dreaptă
             return []
 
     def calculate_confidence(self, distance_km):
-        # --- LOGICĂ NOUĂ ETAPA 6: Confidence Check ---
-        # Modelul nostru a fost antrenat pe distanțe urbane (0-20km).
-        # Dacă distanța e mare, încrederea în predicția AI scade.
+        # --- LOGICA NOUA ETAPA 6: Confidence Check ---
+        # Modelul nostru a fost antrenat pe distante urbane (0-20km).
+        # Daca distanta e mare, increderea in predictia AI scade.
         
         if distance_km < 15:
             return 0.95 # High Confidence
@@ -109,8 +109,8 @@ class GeneticOptimizer:
             conf = self.calculate_confidence(dist)
             if conf < 0.6:
                 # Low confidence -> Penalizare sau Flagging
-                # Simulând astfel respingerea automată ("Request Human Review")
-                # print(f"⚠️ [Low Confidence {conf}] Distanța {dist:.1f}km e prea mare.")
+                # Simuland astfel respingerea automata ("Request Human Review")
+                # print(f" [Low Confidence {conf}] Distanța {dist:.1f}km e prea mare.")
                 return 99999 # Fitness foarte prost pentru a elimina gena
             
             # --- STARE: RN_INFERENCE ---
@@ -128,7 +128,7 @@ class GeneticOptimizer:
         n = len(locations)
         dist_matrix = [[0]*n for _ in range(n)]
         
-        # Precalcularea distanțelor pentru viteză
+        # Precalcularea distantelor pentru viteza
         for i in range(n):
             for j in range(n):
                 if i != j:
@@ -141,7 +141,7 @@ class GeneticOptimizer:
         best_route = indices
         best_fitness = float('inf')
 
-        # Inițializare populație
+        # Initializare populatie
         population = []
         for _ in range(pop_size):
             route = client_indices.copy()
@@ -156,7 +156,7 @@ class GeneticOptimizer:
                     best_fitness = fit
                     best_route = ind
             
-            # Evoluție simplificată: Păstrăm cel mai bun (elitism) și randomizăm restul
+            # Evolutie simplificata: Pastram cel mai bun și randomizăm restul
             new_pop = [best_route]
             for _ in range(pop_size - 1):
                 child = best_route[1:].copy()
@@ -166,8 +166,8 @@ class GeneticOptimizer:
             
         self.state = "SEND_RESPONSE"
         
-        print("    [Genetic] 🛣️ Extragere geometrie detaliată pentru hartă (OSMnx)...")
-        # Acum apelăm funcția nouă care extrage străzile exact
+        print("    [Genetic] Extragere geometrie detaliată pentru hartă (OSMnx)...")
+        # Acum apelam funcția noua care extrage strazile exact
         detailed_geometry = self._get_detailed_path(best_route, locations)
         
         self.state = "IDLE"

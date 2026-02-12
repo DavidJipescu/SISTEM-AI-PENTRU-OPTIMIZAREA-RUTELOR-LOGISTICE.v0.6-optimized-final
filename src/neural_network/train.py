@@ -26,7 +26,7 @@ def build_model(input_shape):
 def run_training():
     print(">>> [Training] Încărcare date...")
     if not os.path.exists(DATA_PATH):
-        print(f"❌ Lipsă date: {DATA_PATH}. Rulează clean_data.py!")
+        print(f" Lipsă date: {DATA_PATH}. Rulează clean_data.py!")
         return
 
     df = pd.read_csv(DATA_PATH)
@@ -59,8 +59,8 @@ def run_training():
     plt.plot(history.history['val_loss'], label='Val Loss')
     plt.title('Training History')
     plt.savefig(PLOT_PATH)
-    print(f"✅ Grafic salvat în: {PLOT_PATH}")
-    print(f"✅ Model antrenat salvat în: {MODEL_SAVE_PATH}")
+    print(f" Grafic salvat în: {PLOT_PATH}")
+    print(f" Model antrenat salvat în: {MODEL_SAVE_PATH}")
 
 if __name__ == "__main__":
     run_training()

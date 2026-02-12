@@ -10,7 +10,7 @@ def run():
     
     print(">>> [Preprocessing] Începere procesare date...")
     if not os.path.exists(raw_csv):
-        print(f"❌ Eroare: Nu găsesc {raw_csv}. Rulează generate_synthetic.py întâi!")
+        print(f"Eroare: Nu găsesc {raw_csv}. Rulează generate_synthetic.py întâi!")
         return
 
     df = pd.read_csv(raw_csv)
@@ -28,8 +28,8 @@ def run():
     df_proc.to_csv(proc_csv, index=False)
     joblib.dump(scaler, scaler_path)
     
-    print(f"   ✅ Date procesate salvate în: {proc_csv}")
-    print(f"   ✅ Scaler salvat în: {scaler_path}")
+    print(f"   Date procesate salvate în: {proc_csv}")
+    print(f"   Scaler salvat în: {scaler_path}")
 
 if __name__ == "__main__":
     run()
