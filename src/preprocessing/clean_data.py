@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import joblib
 
 def run():
-    raw_csv = 'data/raw/synthetic_traffic_data.csv'
+    raw_csv = 'SISTEM-AI-PENTRU-OPTIMIZAREA-RUTELOR-LOGISTICE/data/raw/synthetic_traffic_data.csv'
     proc_csv = 'data/processed/train_data.csv'
     scaler_path = 'config/scaler_params.pkl'
     
